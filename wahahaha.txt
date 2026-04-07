@@ -1,0 +1,92 @@
+Group 3 – library system
+
+Notes:
+Allowed no. Of days to borrow for students/teachers
+3 days for students, 5 days for teachers
+Penalty for students: 5.00/day teacher: 10.00/day
+3 categories / per category 2 titles
+
+MENU
+[A] – BORROW
+[B] – RETURN
+[C] – USERS PROFILE
+[D] – REPORTS
+[E] – EXIT
+Select your answer: A
+
+BORROW MENU
+Input user type:
+[a] student
+[b] faculty
+Select your answer: a
+User type: STUDENT
+Student id: 12345
+Name: mariz chua
+Course: bscs
+
+BOOK CATEGORY
+[A] – COMPUTER
+[B] – MATHEMATICS
+[C] – SCIENCES
+[D] – BACK
+Select your answer: A
+
+COMPUTER CATEGORY
+[A] – Intermediate Programming
+[B] – Digital Logic
+[C] – BACK
+Select your answer: A
+Book id: C0001
+    Book title: Intermediate Programming
+    Author: Ms. Chua
+    Copyright: 2019
+    Publisher: test
+Date Borrowed: March 6, 2023 Note: You need 3 days to return this book
+Do you want to borrow this?[y/n]? Y n> 
+This book was added to your account
+Do you want to try again? Y > book category n > main menu
+
+RETURN MENU
+Input user type: 
+[a] student
+[b] faculty
+Select your answer: a
+User type: STUDENT
+Student id: 12345
+    Name: mariz chua
+    Course: bscs
+    Input book id: C0001 
+    Book title: 
+    Author:
+    Copyright:
+    Publisher:
+    Date Borrowed: March 6, 2023 (3 days) – March 9
+Date Returned: March 13, 2023
+No. Of days: 4
+Penalty: 20.00
+Amount received: 50.00
+Change: 30.00
+Do you want to go back to main menu?[y/n] y > main menu n > exit
+
+USERS PROFILE:
+Input user type:
+[a] student
+[b] faculty
+[c] back
+Select your answer: a
+Student id: 
+Name:
+Course:
+Year Level:
+Do you want to save? y/n: y> save n> USER PROFILE
+
+Employee id:
+Name:
+Department:
+Position:
+Do you want to save? y/n: y> save n> USER PROFILE
+REPORTS MENU
+[1]  Borrowed Books
+[2] Returned Book
+[3] Students Profile Report
+[4] Faculty Profile Report
