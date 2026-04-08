@@ -1,0 +1,16 @@
+Notes:
+Allowed no. Of days to borrow for students/teachers
+3 days for students, 5 days for teachers
+Penalty for students: 5.00/day teacher: 10.00/day
+3 categories / per category 2 titles
+
+
+storage:
+ - student users 
+ - faculty users 
+
+logs for
+ - borrowed books 
+ - returned books 
+ - student profile reports 
+ - faculty profile reports 
