@@ -52,6 +52,7 @@ void showBooksDetails (char category[], Book books[], int bookCount, bool *borro
     for (int i = 0; i < bookCount; i++) {
         if (strcmp(books[i].category, category) == 0){
             printf("[%c] - %s\n", 'A' + index, books[i].title);
+            index++;
         }
     }
     printf("[C] - Back");
@@ -67,11 +68,11 @@ int main(){
     Faculty faculty[50];
     Record borrowedRecords[100];
 
-    char userProfile, mainMenu, bookCategory, borrowUserType, returnUserType, userProfileTryAgain, returnTryAgain, borrowTryAgain, reportsMenu;
+    char userProfile, mainMenu, bookCategory, borrowUserType, returnUserType, userProfileTryAgain, returnTryAgain, borrowTryAgain, reportsMenu, searchIdReturn[20];
     bool status = true, returnStatus = true, borrowStatus = true, userProfileStatus = true;
 
     while (status) {
-        printf("MENU \n");
+        printf("\nMENU \n");
         printf("[A] BORROW\n");
         printf("[B] RETURN\n");
         printf("[C] USERS PROFILE\n");
@@ -79,6 +80,7 @@ int main(){
         printf("[E] EXIT\n");
         printf("Select your answer: ");
         scanf(" %c", &mainMenu);
+        printf("\n");
         char upperMainMenu = toupper(mainMenu);
 
         switch (upperMainMenu) {
@@ -89,14 +91,17 @@ int main(){
                 printf("[B] faculty\n");
                 printf("Select your answer: ");
                 scanf(" %c", &borrowUserType);
+                printf("\n");
                 char upperBorrowUserType = toupper(borrowUserType);
 
                 switch (upperBorrowUserType) {
-                    case 'A':
-                        char searchId;
+                    bool userFound = false;
+
+                    case 'A': {
+                        char searchId[20];
                         printf("User type: Student\n");
                         printf("Student id: ");
-                        scanf(" %s", &searchId);
+                        scanf(" %s", searchId);
 
                         int found = -1;
                         for (int i = 0; i < studentCount; i++) {
@@ -107,21 +112,27 @@ int main(){
                         }
 
                         if (found == -1) {
-                            printf("Student not found. Please register first.");
+                            printf("Student not found. Please register first.\n");
                             break;
                         }
+
+                        userFound = true;
+                        break;
 
                         printf("\tName: %s\n", students[found].name);
                         printf("\tCourse: %s\n", students[found].course);
                         printf("\tYear Level: %s\n", students[found].yearLevel);
 
                         break;
+                    }
+                        
 
-                    case 'B':
-                       char searchId;
+                    case 'B': {
+                        char searchId[20];
                         printf("User type: Faculty\n");
                         printf("Employee id: ");
                         scanf(" %s", &searchId);
+                        printf("\n");
 
                         int found = -1;
                         for (int i = 0; i < facultyCount; i++) {
@@ -132,78 +143,64 @@ int main(){
                         }
 
                         if (found == -1) {
-                            printf("Employee not found. Please register first.");
+                            printf("Employee not found. Please register first.\n");
                             break;
                         }
+
+                        userFound = true;
+                        break;
 
                         printf("\tName: %s\n", faculty[found].name);
                         printf("\tDepartment: %s\n", faculty[found].department);
                         printf("\tPosition: %s\n", faculty[found].position);
 
                         break;
+                    }
+                        
 
                     default:
-                        printf("invalid, try again.");
-                }
+                        printf("invalid, try again.\n");
 
-                while (borrowStatus) {
-                    printf("BOOK CATEGORY \n");
-                    printf("[A] COMPUTER\n");
-                    printf("[B] MATHEMATICS\n");
-                    printf("[C] SCIENCES\n");
-                    printf("[D] BACK\n");
-                    printf("Select your answer: ");
-                    scanf(" %c", &bookCategory);
-                    char upperBookCategory = toupper(bookCategory);
+                    if (userFound) {
+                    borrowStatus = true;
+                        while (borrowStatus) {
+                        printf("BOOK CATEGORY \n");
+                        printf("[A] COMPUTER\n");
+                        printf("[B] MATHEMATICS\n");
+                        printf("[C] SCIENCES\n");
+                        printf("[D] BACK\n");
+                        printf("Select your answer: ");
+                        scanf(" %c", &bookCategory);
+                        printf("\n");
 
-                    switch (upperBookCategory){
-                        case 'A':
-                            showBooksDetails("COMPUTER", books, 6, &borrowStatus);
-                            break;
+                        char upperBookCategory = toupper(bookCategory);
 
-                            // printf("COMPUTER CATEGORY\n");
-                            // printf("[A] – Intermediate Programming\n");
-                            // printf("[B] – Digital Logic\n");
-                            // printf("[C] – BACK\n");
-                            // printf("Select your answer:\n");
-                            // scanf("");
-                            // printf("Book id: \n");
-                            // scanf("");
-                            // printf("\tBook title: ");
-                            // printf("\tAuthor: ");
-                            // printf("\tCopyright: ");
-                            // printf("\tPublisher: ");
-                            // printf("Date Borrowed: %s \n");
-                            // printf("Do you want to borrow this?[y/n]: ");
-                            // scanf("");
-                            // printf("This book was added to your account \n");
-                            // printf("Do you want to try again?: ");
-                            // scanf("%c", &borrowTryAgain);
+                        switch (upperBookCategory){
+                            case 'A':
+                                showBooksDetails("COMPUTER", books, 6, &borrowStatus);
+                                break;
 
-                            // if (borrowTryAgain == 'y'){
-                            //     break;
-                            // } else {
-                            //     borrowStatus = false;
-                            //     break;
-                            // }
-                        
-                        case 'B':
-                            showBooksDetails("MATHEMATICS", books, 6, &borrowStatus);
-                            break;
-                        
-                        case 'C':
-                            showBooksDetails("SCIENCES", books, 6, &borrowStatus);
-                            break;
+                            case 'B':
+                                showBooksDetails("MATHEMATICS", books, 6, &borrowStatus);
+                                break;
+                            
+                            case 'C':
+                                showBooksDetails("SCIENCES", books, 6, &borrowStatus);
+                                break;
 
-                        case 'D':
-                            borrowStatus = false;
-                            break;
-                        
-                        default:
-                            printf("invalid, try again.");
+                            case 'D':
+                                borrowStatus = false;
+                                break;
+                            
+                            default:
+                                printf("invalid, try again.\n");
+                            }
+                        }
+                    
+                    break;
                     }
                 }
-
+                
             break;
             
             case 'B':
@@ -212,71 +209,78 @@ int main(){
                     printf("Input user type: \n");
                     printf("[A] student\n");
                     printf("[B] faculty\n");
+                    printf("[C] back\n");
                     printf("Select your answer:");
                     scanf(" %c", &returnUserType);
+                    printf("\n");
+
                     char upperReturnUserType = toupper(returnUserType);
                     
                     // search user - error handling - print logs
 
                     switch (upperReturnUserType) {
-                        case 'A':
+                        case 'A': {
                             printf("User type: %s\n");
                             printf("Student id:");
-                            scanf("");
+                            scanf(" %s", searchIdReturn);
 
-                            printf("\tName: \n");
-                            printf("\tCourse: \n");
-                            printf("\tInput book id: \n");
-                            printf("\tBook title: \n");
-                            printf("\tAuthor: \n");
-                            printf("\tCopyright: \n");
-                            printf("\tPublisher: \n");
-                            printf("\tDate Borrowed: \n");
+                            int found = -1;
+                            for (int i = 0; i < studentCount; i++){
+                                if (strcmp(students[i].id, searchIdReturn) == 0) {
+                                    found = i;
+                                    break;
+                                }
+                            }
 
-                            printf("Date Returned: \n");
-                            printf("No. Of days: \n");
-                            printf("Penalty: \n");
-                            printf("Amount received: \n");
-                            printf("Change: \n");
-                            printf("Do you want to go back to main menu?[y/n]:");
-                            scanf("%c", &returnTryAgain);
-
-                            if (returnTryAgain == 'y') {
-                                returnStatus = false;
-                                break;
-                            } else {
+                            if (found == -1) {
+                                printf("Student not found. please register first.");
                                 break;
                             }
+                            
+                            printf("\tName: %s\n", students[found].name);
+                            printf("\tCourse: %s\n", students[found].course);
+                            printf("\tYear Level: %d\n", students[found].yearLevel);
+
+                            break;
+                        }
+                           
 
                         
-                        case 'B':
+                        case 'B': {
                             printf("User type: %s\n");
                             printf("Employee id: ");
-                            scanf("");
+                            printf("User type: %s\n");
+                            printf("Student id:");
+                            scanf(" %s", searchIdReturn);
+                            printf("\n");
 
-                            printf("\tName: \n");
-                            printf("\tCourse: \n");
-                            printf("\tInput book id: \n");
-                            printf("\tBook title: \n");
-                            printf("\tAuthor: \n");
-                            printf("\tCopyright: \n");
-                            printf("\tPublisher: \n");
-                            printf("\tDate Borrowed: \n");
 
-                            printf("Date Returned: \n");
-                            printf("No. Of days: \n");
-                            printf("Penalty: \n");
-                            printf("Amount received: \n");
-                            printf("Change: \n");
-                            printf("Do you want to go back to main menu?[y/n]:");
-                            scanf("%c", &returnTryAgain);
+                            int found = -1;
+                            for (int i = 0; i < facultyCount; i++){
+                                if (strcmp(faculty[i].id, searchIdReturn) == 0) {
+                                    found = i;
+                                    break;
+                                }
+                            }
 
-                            if (returnTryAgain == 'y') {
-                                returnStatus = false;
-                                break;
-                            } else {
+                            if (found == -1) {
+                                printf("employee not found. please register first.");
                                 break;
                             }
+                            
+                            printf("\tName: %s\n", faculty[found].name);
+                            printf("\tDepartment: %s\n", faculty[found].department);
+                            printf("\tPosition: %s\n", faculty[found].position);
+
+                            break;
+                        }
+                           
+
+                        case 'C':
+                            break;
+
+                        default:
+                            printf("invalid, plz try again.");
                     }
                 }
             
@@ -290,6 +294,8 @@ int main(){
                 printf("[C] back\n");
                 printf("Select your answer: ");
                 scanf(" %c", &userProfile);
+                printf("\n");
+
                 char upperUserProfile = toupper(userProfile);
 
                 switch (upperUserProfile){
@@ -306,16 +312,29 @@ int main(){
                         scanf(" %i", &students[studentCount].yearLevel);
                         printf("Do you want to save? y/n: ");
                         scanf(" %c", &userProfileTryAgain);
+                        printf("\n");
                         char upperUserProfileTryAgain = toupper(userProfileTryAgain);
 
-                        if (upperUserProfileTryAgain == 'y'){
-                            studentCount++;
-                            userProfileStatus = false;
-                        } else {
-                            userProfileStatus = false ;
-                        }
+                        if (upperUserProfileTryAgain == 'Y'){
+                            int duplicate = -1;
+                            for (int i = 0; i < studentCount; i++){
+                                if (strcmp(students[i].id, students[studentCount].id) == 0){
+                                    duplicate = i;
+                                    break;
+                                }
+                            }
+
+                            if (duplicate != -1) {
+                                printf("student already exists!\n");
+                            } else {
+                                studentCount++;
+                                userProfileStatus = false;
+                            }
+                        } 
 
                      }
+
+                    break;
                     
                     case 'B':
                         userProfileStatus = true;
@@ -323,28 +342,49 @@ int main(){
                             printf("Employee id: ");
                             scanf("%s", faculty[facultyCount].id);
                             printf("Name: ");
-                            scanf(" %[^\n]", faculty[facultyCount].id);
+                            scanf(" %[^\n]", faculty[facultyCount].name);
                             printf("Department: ");
                             scanf(" %s", faculty[facultyCount].department);
                             printf("Position: ");
                             scanf(" %s", faculty[facultyCount].position);
                             printf("Do you want to save? [Y/N]: ");
                             scanf(" %c", &userProfileTryAgain);
+                            printf("\n");
                             char upperUserProfileTryAgain = toupper(userProfileTryAgain);
 
                             if (upperUserProfileTryAgain == 'Y'){
-                                studentCount++;
-                                userProfileStatus = false;
-                            } else {
-                                userProfileStatus = false;
+                               int duplicate = -1;
+                                for (int i = 0; i < facultyCount; i++){
+                                    if (strcmp(faculty[i].id, faculty[facultyCount].id) == 0){
+                                        duplicate = i;
+                                        break;
+                                    }
+                                }
+
+                                if (duplicate != -1) {
+                                    printf("employee already exists!\n");
+                                } else {
+                                    facultyCount++;
+                                    userProfileStatus = false;
+                                }
                             }
                         }
+
+                        break;
                     
+                    case 'C':
+                        break;
+
                     default:
-                        printf("invalid, please try again");
+                        printf("invalid, please try again...\n");
                 }
+            
+            break;
 
             case 'D':
+
+                // csv printout
+
                 printf("REPORTS MENU");
                 printf("[A] Borrowed Books");
                 printf("[B] Returned Book");
@@ -352,22 +392,20 @@ int main(){
                 printf("[D] Faculty Profile Report");
                 printf("[E] Back");
                 printf("plz select: ");
-                scanf(" %c", reportsMenu);
+                scanf(" %c", &reportsMenu);
+                printf("\n");
                 char upperReportsMenu = toupper(reportsMenu);
-
 
                 break;
             
             case 'E':
-                printf("The system will close now.");
+                printf("The system will close now.\n");
+                status = false;
                 break;
             
             default:
-                printf("invalid, please try again.");
-
+                printf("invalid, please try again.\n");
         }
     }
-
-    
     
 }
