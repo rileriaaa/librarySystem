@@ -70,6 +70,135 @@ void showBooksDetails(char category[], Book books[], int bookCount, bool *borrow
         return;
 }
 
+void saveStudents(Student students[], int count)
+{
+    FILE *fp = fopen("students.csv", "w");
+    if (fp == NULL)
+    {
+        printf("Error Saving Students.\n");
+        return;
+    }
+    for (int i = 0; i < count; i++)
+    {
+        fprintf(fp, "%s %s %s %d\n",
+                students[i].id,
+                students[i].name,
+                students[i].course,
+                students[i].yearLevel);
+    }
+    fclose(fp);
+}
+
+void saveFaculty(Faculty faculty[], int count)
+{
+    FILE *fp = fopen("faculty.csv", "w");
+    if (fp == NULL)
+    {
+        printf("Error Saving faculty.\n");
+        return;
+    }
+    for (int i = 0; i < count; i++)
+    {
+        fprintf(fp, "%s %s %s %d\n",
+                faculty[i].id,
+                faculty[i].name,
+                faculty[i].department,
+                faculty[i].position);
+    }
+    fclose(fp);
+}
+
+void saveRecords(Record records[], int count)
+{
+    FILE *fp = fopen("records.csv", "w");
+    if (fp == NULL)
+    {
+        printf("Error saving reciords.\n");
+        return;
+    }
+    for (int i = 0; i < count; i++)
+    {
+        fprintf(fp, "%s %s %s %d\n",
+                records[i].userId,
+                records[i].userType,
+                records[i].bookId,
+                records[i].dateBorrowed,
+                records[i].dateReturned,
+                records[i].penalty,
+                records[i].isReturned);
+    }
+    fclose(fp);
+}
+
+int loadStudents(Student students[])
+{
+    FILE *fp = fopen("students.csv", "r");
+    if (fp == NULL)
+    {
+        printf("no found file, creating new one.");
+        return 0;
+    }
+
+    int count = 0;
+    while (fscanf(fp, "%[^,],%[^,],%[^,],%d\n",
+                  students[count].id,
+                  students[count].name,
+                  students[count].course,
+                  students[count].yearLevel) == 4)
+    {
+        count++;
+    }
+    fclose(fp);
+    return count;
+}
+
+int loadFaculty(Faculty faculty[])
+{
+    FILE *fp = fopen("faculty.csv", "r");
+    if (fp == NULL)
+    {
+        printf("no found file, creating new one.");
+        return 0;
+    }
+
+    int count = 0;
+    while (fscanf(fp, "%[^,],%[^,],%[^,],%d\n",
+                  faculty[count].id,
+                  faculty[count].name,
+                  faculty[count].department,
+                  faculty[count].position) == 4)
+    {
+        count++;
+    }
+    fclose(fp);
+    return count;
+}
+
+int loadRecords(Record records[])
+{
+    FILE *fp = fopen("students.csv", "r");
+    if (fp == NULL)
+    {
+        printf("no found file, creating new one.");
+        return 0;
+    }
+
+    int count = 0;
+    while (fscanf(fp, "%[^,],%[^,],%[^,],%d\n",
+                  records[count].userId,
+                  records[count].userType,
+                  records[count].bookId,
+                  records[count].dateBorrowed,
+                  records[count].dateReturned,
+                  records[count].penalty,
+                  records[count].isReturned) == 7)
+    {
+        count++;
+    }
+    fclose(fp);
+    return count;
+}
+
 int main()
 {
     int studentCount = 0, facultyCount = 0;
