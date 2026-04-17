@@ -1,9 +1,13 @@
 Notes:
 Allowed no. Of days to borrow for students/teachers
 3 days for students, 5 days for teachers
+
 Penalty for students: 5.00/day teacher: 10.00/day
 3 categories / per category 2 titles
 
+add function;
+    borrowed books on showBooksDetails()
+    returned books 
 
 storage:
  - student users 
