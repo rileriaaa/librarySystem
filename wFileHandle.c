@@ -49,6 +49,166 @@ Book books[6] = {
     {"S0002", "Biological Evolution", "Mr. Garcia", "2019", "Test Publisher", "SCIENCES"},
 };
 
+void toUpperCase(char str[])
+{
+    for (int i = 0; str[i] != '\0'; i++)
+    {
+        str[i] = toupper(str[i]);
+    }
+}
+
+void toTitleCase(char str[])
+{
+    int capitalizeNext = 1;
+    for (int i = 0; str[i] != '\0'; i++)
+    {
+        if (str[i] == ' ')
+        {
+            capitalizeNext = 1;
+        }
+        else if (capitalizeNext)
+        {
+            str[i] = toupper(str[i]);
+            capitalizeNext = 0;
+        }
+        else
+        {
+            str[i] = tolower(str[i]);
+        }
+    }
+}
+
+void saveStudents(Student students[], int count)
+{
+    FILE *fp = fopen("students.csv", "w");
+    if (fp == NULL)
+    {
+        printf("Error Saving Students.\n");
+        return;
+    }
+    for (int i = 0; i < count; i++)
+    {
+        fprintf(fp, "%s,%s,%s,%d\n",
+                students[i].id,
+                students[i].name,
+                students[i].course,
+                students[i].yearLevel);
+    }
+    fclose(fp);
+}
+
+void saveFaculty(Faculty faculty[], int count)
+{
+    FILE *fp = fopen("faculty.csv", "w");
+    if (fp == NULL)
+    {
+        printf("Error Saving faculty.\n");
+        return;
+    }
+    for (int i = 0; i < count; i++)
+    {
+        fprintf(fp, "%s,%s,%s,%s\n",
+                faculty[i].id,
+                faculty[i].name,
+                faculty[i].department,
+                faculty[i].position);
+    }
+    fclose(fp);
+}
+
+void saveRecords(Record records[], int count)
+{
+    FILE *fp = fopen("records.csv", "w");
+    if (fp == NULL)
+    {
+        printf("Error saving reciords.\n");
+        return;
+    }
+    for (int i = 0; i < count; i++)
+    {
+        fprintf(fp, "%s,%s,%s,%s,%s,%.2f,%d\n",
+                records[i].userId,
+                records[i].userType,
+                records[i].bookId,
+                records[i].dateBorrowed,
+                records[i].dateReturned,
+                records[i].penalty,
+                records[i].isReturned);
+    }
+    fclose(fp);
+}
+
+int loadStudents(Student students[])
+{
+    FILE *fp = fopen("students.csv", "r");
+    if (fp == NULL)
+    {
+        printf("no students file found, creating new one.");
+        return 0;
+    }
+
+    int count = 0;
+    while (fscanf(fp, "%[^,],%[^,],%[^,],%d\n",
+                  students[count].id,
+                  students[count].name,
+                  students[count].course,
+                  &students[count].yearLevel) == 4)
+    {
+        count++;
+    }
+    fclose(fp);
+    return count;
+}
+
+int loadFaculty(Faculty faculty[])
+{
+    FILE *fp = fopen("faculty.csv", "r");
+    if (fp == NULL)
+    {
+        printf("no faculty file found, creating new one.");
+        return 0;
+    }
+
+    int count = 0;
+    while (fscanf(fp, "%[^,],%[^,],%[^,],%[^\n]\n",
+                  faculty[count].id,
+                  faculty[count].name,
+                  faculty[count].department,
+                  faculty[count].position) == 4)
+    {
+        count++;
+    }
+    fclose(fp);
+    return count;
+}
+
+int loadRecords(Record records[])
+{
+    FILE *fp = fopen("records.csv", "r");
+    if (fp == NULL)
+    {
+        printf("no records file found, creating new one.");
+        return 0;
+    }
+
+    int count = 0;
+    int isReturned;
+    while (fscanf(fp, "%[^,],%[^,],%[^,],%[^,],%[^,],%f,%d\n",
+                  records[count].userId,
+                  records[count].userType,
+                  records[count].bookId,
+                  records[count].dateBorrowed,
+                  records[count].dateReturned,
+                  &records[count].penalty,
+                  &isReturned) == 7)
+    {
+        records[count].isReturned = isReturned;
+        count++;
+    }
+    fclose(fp);
+    return count;
+}
+
 void showBooksDetails(char category[], Book books[], int bookCount, bool *borrowStatus,
                       Record records[], int *recordCount, char userId[], char userType[])
 {
@@ -62,6 +222,7 @@ void showBooksDetails(char category[], Book books[], int bookCount, bool *borrow
         if (strcmp(books[i].category, category) == 0)
         {
             printf("[%c] - %s\n", 'A' + index, books[i].title);
+            bookIndices[index] = i;
             index++;
         }
     }
@@ -117,135 +278,6 @@ void showBooksDetails(char category[], Book books[], int bookCount, bool *borrow
     {
         *borrowStatus = false;
     }
-}
-
-void saveStudents(Student students[], int count)
-{
-    FILE *fp = fopen("students.csv", "w");
-    if (fp == NULL)
-    {
-        printf("Error Saving Students.\n");
-        return;
-    }
-    for (int i = 0; i < count; i++)
-    {
-        fprintf(fp, "%s %s %s %d\n",
-                students[i].id,
-                students[i].name,
-                students[i].course,
-                students[i].yearLevel);
-    }
-    fclose(fp);
-}
-
-void saveFaculty(Faculty faculty[], int count)
-{
-    FILE *fp = fopen("faculty.csv", "w");
-    if (fp == NULL)
-    {
-        printf("Error Saving faculty.\n");
-        return;
-    }
-    for (int i = 0; i < count; i++)
-    {
-        fprintf(fp, "%s %s %s %d\n",
-                faculty[i].id,
-                faculty[i].name,
-                faculty[i].department,
-                faculty[i].position);
-    }
-    fclose(fp);
-}
-
-void saveRecords(Record records[], int count)
-{
-    FILE *fp = fopen("records.csv", "w");
-    if (fp == NULL)
-    {
-        printf("Error saving reciords.\n");
-        return;
-    }
-    for (int i = 0; i < count; i++)
-    {
-        fprintf(fp, "%s %s %s %d\n",
-                records[i].userId,
-                records[i].userType,
-                records[i].bookId,
-                records[i].dateBorrowed,
-                records[i].dateReturned,
-                records[i].penalty,
-                records[i].isReturned);
-    }
-    fclose(fp);
-}
-
-int loadStudents(Student students[])
-{
-    FILE *fp = fopen("students.csv", "r");
-    if (fp == NULL)
-    {
-        printf("no found file, creating new one.");
-        return 0;
-    }
-
-    int count = 0;
-    while (fscanf(fp, "%[^,],%[^,],%[^,],%d\n",
-                  students[count].id,
-                  students[count].name,
-                  students[count].course,
-                  students[count].yearLevel) == 4)
-    {
-        count++;
-    }
-    fclose(fp);
-    return count;
-}
-
-int loadFaculty(Faculty faculty[])
-{
-    FILE *fp = fopen("faculty.csv", "r");
-    if (fp == NULL)
-    {
-        printf("no found file, creating new one.");
-        return 0;
-    }
-
-    int count = 0;
-    while (fscanf(fp, "%[^,],%[^,],%[^,],%d\n",
-                  faculty[count].id,
-                  faculty[count].name,
-                  faculty[count].department,
-                  faculty[count].position) == 4)
-    {
-        count++;
-    }
-    fclose(fp);
-    return count;
-}
-
-int loadRecords(Record records[])
-{
-    FILE *fp = fopen("students.csv", "r");
-    if (fp == NULL)
-    {
-        printf("no found file, creating new one.");
-        return 0;
-    }
-
-    int count = 0;
-    while (fscanf(fp, "%[^,],%[^,],%[^,],%d\n",
-                  records[count].userId,
-                  records[count].userType,
-                  records[count].bookId,
-                  records[count].dateBorrowed,
-                  records[count].dateReturned,
-                  records[count].penalty,
-                  records[count].isReturned) == 7)
-    {
-        count++;
-    }
-    fclose(fp);
-    return count;
 }
 
 int main()
@@ -531,11 +563,13 @@ int main()
 
                     printf("Name: ");
                     scanf("%[^\n]", students[studentCount].name);
+                    toTitleCase(students[studentCount].name);
                     while (getchar() != '\n')
                         ;
 
                     printf("Course: ");
-                    scanf(" %s", students[studentCount].course);
+                    scanf("%[^\n]", students[studentCount].course);
+                    toUpperCase(students[studentCount].course);
                     while (getchar() != '\n')
                         ;
 
@@ -590,17 +624,20 @@ int main()
                         ;
 
                     printf("Name: ");
-                    scanf(" %[^\n]", faculty[facultyCount].name);
+                    scanf("%[^\n]", faculty[facultyCount].name);
+                    toTitleCase(faculty[facultyCount].name);
                     while (getchar() != '\n')
                         ;
 
                     printf("Department: ");
-                    scanf(" %s", faculty[facultyCount].department);
+                    scanf("%[^\n]", faculty[facultyCount].department);
+                    toTitleCase(faculty[facultyCount].department);
                     while (getchar() != '\n')
                         ;
 
                     printf("Position: ");
-                    scanf(" %s", faculty[facultyCount].position);
+                    scanf("%[^\n]", faculty[facultyCount].position);
+                    toTitleCase(faculty[facultyCount].position);
                     while (getchar() != '\n')
                         ;
 
@@ -652,12 +689,12 @@ int main()
 
         case 'D':
         {
-            printf("REPORTS MENU");
-            printf("[A] Borrowed Books");
-            printf("[B] Returned Book");
-            printf("[C] Students Profile Report");
-            printf("[D] Faculty Profile Report");
-            printf("[E] Back");
+            printf("REPORTS MENU\n");
+            printf("[A] Borrowed Books\n");
+            printf("[B] Returned Book\n");
+            printf("[C] Students Profiles\n");
+            printf("[D] Faculty Profiles\n");
+            printf("[E] Back\n");
             printf("plz select: ");
             scanf(" %c", &reportsMenu);
             printf("\n");
@@ -671,7 +708,8 @@ int main()
                 {
                     if (!borrowedRecords[i].isReturned)
                     {
-                        printf("User: %s | Book: %s | Date: %s\n",
+                        printf("User Type: %s | User: %s | Book: %s | Date: %s\n",
+                               borrowedRecords[i].userType,
                                borrowedRecords[i].userId,
                                borrowedRecords[i].bookId,
                                borrowedRecords[i].dateBorrowed);
@@ -685,7 +723,8 @@ int main()
                 {
                     if (!borrowedRecords[i].isReturned)
                     {
-                        printf("User: %s | Book: %s | Date: %s\n",
+                        printf("User Type: %s | User: %s | Book: %s | Date: %s\n",
+                               borrowedRecords[i].userType,
                                borrowedRecords[i].userId,
                                borrowedRecords[i].bookId,
                                borrowedRecords[i].dateBorrowed);
@@ -697,7 +736,6 @@ int main()
                 printf("Student Profiles\n");
                 for (int i = 0; i < studentCount; i++)
                 {
-
                     printf("ID: %s | Name: %s | Course: %s | Year: %d\n",
                            students[i].id,
                            students[i].name,

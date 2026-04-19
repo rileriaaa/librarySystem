@@ -5,16 +5,22 @@ Allowed no. Of days to borrow for students/teachers
 Penalty for students: 5.00/day teacher: 10.00/day
 3 categories / per category 2 titles
 
+
+logic for penalties
+dynamic date
+
+
+
 add function;
-    borrowed books on showBooksDetails()
-    returned books 
+    borrowed books on showBooksDetails() //
+    returned books  //
 
 storage:
- - student users 
- - faculty users 
+ - student users //
+ - faculty users //
 
 logs for
- - borrowed books 
+ - borrowed books // 
  - returned books 
  - student profile reports 
  - faculty profile reports 
