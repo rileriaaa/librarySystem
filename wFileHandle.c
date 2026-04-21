@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <string.h>
+#include <time.h>
 
 typedef struct
 {
@@ -49,6 +50,13 @@ Book books[6] = {
     {"S0002", "Biological Evolution", "Mr. Garcia", "2019", "Test Publisher", "SCIENCES"},
 };
 
+void getCurrentDate(char result[])
+{
+    time_t t = time(NULL);
+    struct tm *tm_info = localtime(&t);
+    strftime(result, 20, "%Y-%m-%d", tm_info);
+}
+
 void toUpperCase(char str[])
 {
     for (int i = 0; str[i] != '\0'; i++)
@@ -76,6 +84,28 @@ void toTitleCase(char str[])
             str[i] = tolower(str[i]);
         }
     }
+}
+
+int dateToDays(char date[])
+{
+    int year, month, day;
+    sscanf(date, "%d-%d-%d", &year, &month, &day);
+
+    return year * 365 + month * 30 + day;
+}
+
+float calculatePenalty(char dateBorrowed[], char dateReturned[], char userType[], int allowedDays)
+{
+    int borrowed = dateToDays(dateBorrowed);
+    int returned = dateToDays(dateReturned);
+    int daysHeld = returned - borrowed;
+    int daysOverdue = daysHeld - allowedDays;
+
+    if (daysOverdue <= 0)
+        return 0;
+
+    float rate = (strcmp(userType, "STUDENT") == 0) ? 5.00 : 10.00;
+    return daysOverdue * rate;
 }
 
 void saveStudents(Student students[], int count)
@@ -216,6 +246,8 @@ void showBooksDetails(char category[], Book books[], int bookCount, bool *borrow
     int index = 0;
     int bookIndices[2];
     char confirm;
+    char today[20];
+    getCurrentDate(today);
 
     for (int i = 0; i < bookCount; i++)
     {
@@ -262,7 +294,7 @@ void showBooksDetails(char category[], Book books[], int bookCount, bool *borrow
         strcpy(records[*recordCount].userId, userId);
         strcpy(records[*recordCount].userType, userType);
         strcpy(records[*recordCount].bookId, books[selectedBook].id);
-        strcpy(records[*recordCount].dateBorrowed, "2026-04-17"); // hardcodeddddd date
+        strcpy(records[*recordCount].dateBorrowed, today); // dynamic date // change date for simulation par
         strcpy(records[*recordCount].dateReturned, "N/A");
         records[*recordCount].penalty = 0;
         records[*recordCount].isReturned = false;
@@ -286,7 +318,7 @@ int main()
     Faculty faculty[50];
     Record borrowedRecords[100];
 
-    char userProfile, mainMenu, bookCategory, borrowUserType, returnUserType, userProfileTryAgain, returnTryAgain, borrowTryAgain, reportsMenu, searchIdReturn[20];
+    char userProfile, mainMenu, bookCategory, borrowUserType, returnUserType, userProfileTryAgain, reportsMenu, searchIdReturn[20];
     bool status = true, returnStatus = true, borrowStatus = true, userProfileStatus = true;
 
     int studentCount = loadStudents(students);
@@ -356,6 +388,17 @@ int main()
                 printf("\tCourse: %s\n", students[found].course);
                 printf("\tYear Level: %d\n", students[found].yearLevel);
                 userFound = true;
+
+                for (int i = 0; i < recordCount; i++)
+                {
+                    if (strcmp(borrowedRecords[i].userId, currentUserId) == 0 &&
+                        !borrowedRecords[i].isReturned)
+                    {
+                        printf("You still have an unreturned book! please return it furst.\n");
+                        userFound = false;
+                        break;
+                    }
+                }
                 break;
             }
 
@@ -364,7 +407,7 @@ int main()
                 char searchId[20];
                 printf("User type: Faculty\n");
                 printf("Employee id: ");
-                scanf(" %s", &searchId);
+                scanf(" %s", searchId);
                 printf("\n");
 
                 int found = -1;
@@ -390,6 +433,18 @@ int main()
                 printf("\tDepartment: %s\n", faculty[found].department);
                 printf("\tPosition: %s\n", faculty[found].position);
                 userFound = true;
+
+                for (int i = 0; i < recordCount; i++)
+                {
+                    if (strcmp(borrowedRecords[i].userId, currentUserId) == 0 &&
+                        !borrowedRecords[i].isReturned)
+                    {
+                        printf("You still have an unreturned book! please return it furst.\n");
+                        userFound = false;
+                        break;
+                    }
+                }
+
                 break;
             }
             default:
@@ -488,6 +543,68 @@ int main()
                     printf("\tCourse: %s\n", students[found].course);
                     printf("\tYear Level: %d\n", students[found].yearLevel);
 
+                    char returnBookId[20];
+                    printf("input book id: ");
+                    scanf(" %s", returnBookId);
+                    while (getchar() != '\n')
+                        ;
+
+                    int recordFound = -1;
+                    for (int i = 0; i < recordCount; i++)
+                    {
+                        if (strcmp(borrowedRecords[i].userId, searchIdReturn) == 0 &&
+                            strcmp(borrowedRecords[i].bookId, returnBookId) == 0 &&
+                            !borrowedRecords[i].isReturned)
+                        {
+                            recordFound = i;
+                            break;
+                        }
+                    }
+
+                    if (recordFound == -1)
+                    {
+                        printf("no active borrow record found.");
+                        break;
+                    }
+
+                    printf("\tDate Borrowed: %s\n", borrowedRecords[recordFound].dateBorrowed);
+
+                    char today[20];
+                    getCurrentDate(today);
+                    int allowedDays = 3;
+                    float penalty = calculatePenalty(borrowedRecords[recordFound].dateBorrowed, today, "STUDENT", allowedDays);
+
+                    printf("Date Returned: %s\n", today);
+                    printf("No. of days: %d\n", dateToDays(today) - dateToDays(borrowedRecords[recordFound].dateBorrowed));
+                    printf("Penalty: %.2f\n", penalty);
+
+                    if (penalty > 0)
+                    {
+                        float amountReceived;
+                        printf("Amound received: ");
+                        scanf("%f", &amountReceived);
+                        while (getchar() != '\n')
+                            ;
+                        printf("Change: %.2f\n", amountReceived - penalty);
+                    }
+
+                    strcpy(borrowedRecords[recordFound].dateReturned, today);
+                    borrowedRecords[recordFound].penalty = penalty;
+                    borrowedRecords[recordFound].isReturned = true;
+                    saveRecords(borrowedRecords, recordCount);
+
+                    printf("Book returned successfully. See you again!");
+
+                    char goBbackk = ' ';
+                    printf("Go back to main menu? [Y/N]: ");
+                    scanf(" %c", &goBbackk);
+                    while (getchar() != '\n')
+                        ;
+                    if (toupper(goBbackk) == 'Y')
+                    {
+                        returnStatus = false;
+                    }
+
                     break;
                 }
 
@@ -519,6 +636,68 @@ int main()
                     printf("\tName: %s\n", faculty[found].name);
                     printf("\tDepartment: %s\n", faculty[found].department);
                     printf("\tPosition: %s\n", faculty[found].position);
+
+                    char returnBookId[20];
+                    printf("input book id: ");
+                    scanf(" %s", returnBookId);
+                    while (getchar() != '\n')
+                        ;
+
+                    int recordFound = -1;
+                    for (int i = 0; i < recordCount; i++)
+                    {
+                        if (strcmp(borrowedRecords[i].userId, searchIdReturn) == 0 &&
+                            strcmp(borrowedRecords[i].bookId, returnBookId) == 0 &&
+                            !borrowedRecords[i].isReturned)
+                        {
+                            recordFound = i;
+                            break;
+                        }
+                    }
+
+                    if (recordFound == -1)
+                    {
+                        printf("no active borrow record found.");
+                        break;
+                    }
+
+                    printf("\tDate Borrowed: %s\n", borrowedRecords[recordFound].dateBorrowed);
+
+                    char today[20];
+                    getCurrentDate(today);
+                    int allowedDays = 5;
+                    float penalty = calculatePenalty(borrowedRecords[recordFound].dateBorrowed, today, "STUDENT", allowedDays);
+
+                    printf("Date Returned: %s\n", today);
+                    printf("No. of days: %d\n", dateToDays(today) - dateToDays(borrowedRecords[recordFound].dateBorrowed));
+                    printf("Penalty: %.2f\n", penalty);
+
+                    if (penalty > 0)
+                    {
+                        float amountReceived;
+                        printf("Amound received: ");
+                        scanf("%f", &amountReceived);
+                        while (getchar() != '\n')
+                            ;
+                        printf("Change: %.2f\n", amountReceived - penalty);
+                    }
+
+                    strcpy(borrowedRecords[recordFound].dateReturned, today);
+                    borrowedRecords[recordFound].penalty = penalty;
+                    borrowedRecords[recordFound].isReturned = true;
+                    saveRecords(borrowedRecords, recordCount);
+
+                    printf("Book returned successfully. See you again!");
+
+                    char goBbackk = ' ';
+                    printf("Go back to main menu? [Y/N]: ");
+                    scanf(" %c", &goBbackk);
+                    while (getchar() != '\n')
+                        ;
+                    if (toupper(goBbackk) == 'Y')
+                    {
+                        returnStatus = false;
+                    }
 
                     break;
                 }
