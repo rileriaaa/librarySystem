@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <string.h>
+#include <time.h>
 
 typedef struct
 {
@@ -42,53 +43,150 @@ typedef struct
 
 Book books[6] = {
     {"INPR111", "Intermediate Programming", "Mrs. Chua", "2020", "Test Publish", "COMPUTER"},
-    {"C0002", "Digital Logic", "Mr. Santos", "2020", "Test Publisher", "COMPUTER"},
-    {"M0001", "Differential Calculus", "Ms. Reyes", "2018", "Test Publisher", "MATHEMATICS"},
-    {"M0002", "Discrete Mathematics", "Mr. Cruz", "2021", "Test Publisher", "MATHEMATICS"},
-    {"S0001", "General Microbiology", "Ms. Lim", "2017", "Test Publisher", "SCIENCES"},
-    {"S0002", "Biological Evolution", "Mr. Garcia", "2019", "Test Publisher", "SCIENCES"},
+    {"DILO111", "Digital Logic", "Mr. Santos", "2020", "Test Publisher", "COMPUTER"},
+    {"DCAL211", "Differential Calculus", "Ms. Reyes", "2018", "Test Publisher", "MATHEMATICS"},
+    {"DSMM211", "Discrete Mathematics", "Mr. Cruz", "2021", "Test Publisher", "MATHEMATICS"},
+    {"GNMC121", "General Microbiology", "Ms. Lim", "2017", "Test Publisher", "SCIENCES"},
+    {"BIEO221", "Biological Evolution", "Mr. Garcia", "2019", "Test Publisher", "SCIENCES"},
 };
 
-void showBooksDetails(char category[], Book books[], int bookCount, bool *borrowStatus)
+void getCurrentDate(char result[])
+{
+    time_t t = time(NULL);
+    struct tm *tm_info = localtime(&t);
+    strftime(result, 20, "%Y-%m-%d", tm_info);
+}
+
+void toUpperCase(char str[])
+{
+    for (int i = 0; str[i] != '\0'; i++)
+        str[i] = toupper(str[i]);
+}
+
+void toTitleCase(char str[])
+{
+    int capitalizeNext = 1;
+    for (int i = 0; str[i] != '\0'; i++)
+    {
+        if (str[i] == ' ')
+            capitalizeNext = 1;
+        else if (capitalizeNext)
+        {
+            str[i] = toupper(str[i]);
+            capitalizeNext = 0;
+        }
+        else
+            str[i] = tolower(str[i]);
+    }
+}
+
+int dateToDays(char date[])
+{
+    int year, month, day;
+    sscanf(date, "%d-%d-%d", &year, &month, &day);
+    return year * 365 + month * 30 + day;
+}
+
+float calculatePenalty(char dateBorrowed[], char dateReturned[], char userType[], int allowedDays)
+{
+    int borrowed = dateToDays(dateBorrowed);
+    int returned = dateToDays(dateReturned);
+    int daysHeld = returned - borrowed;
+    int daysOverdue = daysHeld - allowedDays;
+
+    if (daysOverdue <= 0)
+        return 0;
+
+    float rate = (strcmp(userType, "STUDENT") == 0) ? 5.00 : 10.00;
+    return daysOverdue * rate;
+}
+
+void showBooksDetails(char category[], Book books[], int bookCount, bool *borrowStatus,
+                      Record records[], int *recordCount, char userId[], char userType[])
 {
     char choice;
-
     int index = 0;
+    int bookIndices[6];
+    char confirm;
+    char today[20];
+    getCurrentDate(today);
+
     for (int i = 0; i < bookCount; i++)
     {
         if (strcmp(books[i].category, category) == 0)
         {
             printf("[%c] - %s\n", 'A' + index, books[i].title);
+            bookIndices[index] = i;
             index++;
         }
     }
     printf("[C] - Back\n");
     printf("Select your answer: ");
     scanf(" %c", &choice);
+    char upperChoice = toupper(choice);
 
-    if (choice == 'C')
+    if (upperChoice == 'C')
         return;
+
+    int selectedBook = -1;
+    if (upperChoice >= 'A' && upperChoice < 'A' + index)
+        selectedBook = bookIndices[upperChoice - 'A'];
+
+    if (selectedBook == -1)
+    {
+        printf("Invalid, try again.\n");
+        return;
+    }
+
+    printf("\nBook ID: %s\n", books[selectedBook].id);
+    printf("\tBook Title: %s\n", books[selectedBook].title);
+    printf("\tAuthor: %s\n", books[selectedBook].author);
+    printf("\tCopyright: %s\n", books[selectedBook].copyright);
+    printf("\tPublisher: %s\n", books[selectedBook].publisher);
+
+    printf("Do you want to borrow this book? [Y/N]: ");
+    scanf(" %c", &confirm);
+    char upperConfirm = toupper(confirm);
+
+    if (upperConfirm == 'Y')
+    {
+        strcpy(records[*recordCount].userId, userId);
+        strcpy(records[*recordCount].userType, userType);
+        strcpy(records[*recordCount].bookId, books[selectedBook].id);
+        strcpy(records[*recordCount].dateBorrowed, today);
+        strcpy(records[*recordCount].dateReturned, "N/A");
+        records[*recordCount].penalty = 0;
+        records[*recordCount].isReturned = false;
+        (*recordCount)++;
+        printf("Book added to your account!\n");
+    }
+
+    char tryAgain;
+    printf("Do you want to try again? [Y/N]: ");
+    scanf(" %c", &tryAgain);
+    if (toupper(tryAgain) == 'N')
+        *borrowStatus = false;
 }
 
 int main()
 {
-    int studentCount = 0, facultyCount = 0;
+    int studentCount = 0, facultyCount = 0, recordCount = 0;
     Student students[50];
     Faculty faculty[50];
     Record borrowedRecords[100];
 
-    char userProfile, mainMenu, bookCategory, borrowUserType, returnUserType, userProfileTryAgain, returnTryAgain, borrowTryAgain, reportsMenu, searchIdReturn[20];
+    char userProfile, mainMenu, bookCategory, borrowUserType, returnUserType, userProfileTryAgain, reportsMenu, searchIdReturn[20];
     bool status = true, returnStatus = true, borrowStatus = true, userProfileStatus = true;
 
     while (status)
     {
-        printf("\nMENU \n");
+        printf("\nMENU\n");
         printf("[A] BORROW\n");
         printf("[B] RETURN\n");
         printf("[C] USERS PROFILE\n");
         printf("[D] REPORTS\n");
         printf("[E] EXIT\n");
-        printf("plz select: ");
+        printf("Select: ");
         scanf(" %c", &mainMenu);
         printf("\n");
         char upperMainMenu = toupper(mainMenu);
@@ -97,24 +195,26 @@ int main()
         {
         case 'A':
         {
-            printf("BORROW MENU \n");
+            printf("BORROW MENU\n");
             printf("Input user type:\n");
-            printf("[A] student\n");
-            printf("[B] faculty\n");
+            printf("[A] Student\n");
+            printf("[B] Faculty\n");
             printf("Select your answer: ");
             scanf(" %c", &borrowUserType);
             printf("\n");
             char upperBorrowUserType = toupper(borrowUserType);
 
+            char currentUserId[20];
+            char currentUserType[20];
             bool userFound = false;
+
             switch (upperBorrowUserType)
             {
-
             case 'A':
             {
                 char searchId[20];
                 printf("User type: Student\n");
-                printf("Student id: ");
+                printf("Student ID: ");
                 scanf(" %s", searchId);
 
                 int found = -1;
@@ -133,10 +233,24 @@ int main()
                     break;
                 }
 
+                strcpy(currentUserId, students[found].id);
+                strcpy(currentUserType, "STUDENT");
+
                 printf("\tName: %s\n", students[found].name);
                 printf("\tCourse: %s\n", students[found].course);
                 printf("\tYear Level: %d\n", students[found].yearLevel);
                 userFound = true;
+
+                for (int i = 0; i < recordCount; i++)
+                {
+                    if (strcmp(borrowedRecords[i].userId, currentUserId) == 0 &&
+                        !borrowedRecords[i].isReturned)
+                    {
+                        printf("You still have an unreturned book! Please return it first.\n");
+                        userFound = false;
+                        break;
+                    }
+                }
                 break;
             }
 
@@ -144,8 +258,8 @@ int main()
             {
                 char searchId[20];
                 printf("User type: Faculty\n");
-                printf("Employee id: ");
-                scanf(" %s", &searchId);
+                printf("Employee ID: ");
+                scanf(" %s", searchId);
                 printf("\n");
 
                 int found = -1;
@@ -164,14 +278,29 @@ int main()
                     break;
                 }
 
+                strcpy(currentUserId, faculty[found].id);
+                strcpy(currentUserType, "FACULTY");
+
                 printf("\tName: %s\n", faculty[found].name);
                 printf("\tDepartment: %s\n", faculty[found].department);
                 printf("\tPosition: %s\n", faculty[found].position);
                 userFound = true;
+
+                for (int i = 0; i < recordCount; i++)
+                {
+                    if (strcmp(borrowedRecords[i].userId, currentUserId) == 0 &&
+                        !borrowedRecords[i].isReturned)
+                    {
+                        printf("You still have an unreturned book! Please return it first.\n");
+                        userFound = false;
+                        break;
+                    }
+                }
                 break;
             }
+
             default:
-                printf("invalid, try again.\n");
+                printf("Invalid, try again.\n");
             }
 
             if (userFound)
@@ -179,7 +308,7 @@ int main()
                 borrowStatus = true;
                 while (borrowStatus)
                 {
-                    printf("BOOK CATEGORY \n");
+                    printf("\nBOOK CATEGORY\n");
                     printf("[A] COMPUTER\n");
                     printf("[B] MATHEMATICS\n");
                     printf("[C] SCIENCES\n");
@@ -193,23 +322,19 @@ int main()
                     switch (upperBookCategory)
                     {
                     case 'A':
-                        showBooksDetails("COMPUTER", books, 6, &borrowStatus);
+                        showBooksDetails("COMPUTER", books, 6, &borrowStatus, borrowedRecords, &recordCount, currentUserId, currentUserType);
                         break;
-
                     case 'B':
-                        showBooksDetails("MATHEMATICS", books, 6, &borrowStatus);
+                        showBooksDetails("MATHEMATICS", books, 6, &borrowStatus, borrowedRecords, &recordCount, currentUserId, currentUserType);
                         break;
-
                     case 'C':
-                        showBooksDetails("SCIENCES", books, 6, &borrowStatus);
+                        showBooksDetails("SCIENCES", books, 6, &borrowStatus, borrowedRecords, &recordCount, currentUserId, currentUserType);
                         break;
-
                     case 'D':
                         borrowStatus = false;
                         break;
-
                     default:
-                        printf("invalid, try again.\n");
+                        printf("Invalid, try again.\n");
                     }
                 }
             }
@@ -219,13 +344,13 @@ int main()
 
         case 'B':
         {
+            returnStatus = true;
             while (returnStatus)
             {
-                printf("\nRETURN MENU \n");
-                printf("Input user type: \n");
-                printf("[A] student\n");
-                printf("[B] faculty\n");
-                printf("[C] back\n");
+                printf("\nRETURN MENU\n");
+                printf("[A] Student\n");
+                printf("[B] Faculty\n");
+                printf("[C] Back\n");
                 printf("Select your answer: ");
                 scanf(" %c", &returnUserType);
                 while (getchar() != '\n')
@@ -234,14 +359,12 @@ int main()
 
                 char upperReturnUserType = toupper(returnUserType);
 
-                // search user - error handling - print logs
-
                 switch (upperReturnUserType)
                 {
                 case 'A':
                 {
                     printf("User type: Student\n");
-                    printf("Student id: ");
+                    printf("Student ID: ");
                     scanf(" %s", searchIdReturn);
                     while (getchar() != '\n')
                         ;
@@ -258,7 +381,7 @@ int main()
 
                     if (found == -1)
                     {
-                        printf("Student not found. please register first.\n");
+                        printf("Student not found. Please register first.\n");
                         break;
                     }
 
@@ -266,13 +389,71 @@ int main()
                     printf("\tCourse: %s\n", students[found].course);
                     printf("\tYear Level: %d\n", students[found].yearLevel);
 
+                    char returnBookId[20];
+                    printf("Input Book ID: ");
+                    scanf(" %s", returnBookId);
+                    while (getchar() != '\n')
+                        ;
+
+                    int recordFound = -1;
+                    for (int i = 0; i < recordCount; i++)
+                    {
+                        if (strcmp(borrowedRecords[i].userId, searchIdReturn) == 0 &&
+                            strcmp(borrowedRecords[i].bookId, returnBookId) == 0 &&
+                            !borrowedRecords[i].isReturned)
+                        {
+                            recordFound = i;
+                            break;
+                        }
+                    }
+
+                    if (recordFound == -1)
+                    {
+                        printf("No active borrow record found.\n");
+                        break;
+                    }
+
+                    printf("\tDate Borrowed: %s\n", borrowedRecords[recordFound].dateBorrowed);
+
+                    char today[20];
+                    getCurrentDate(today);
+                    int allowedDays = 3;
+                    float penalty = calculatePenalty(borrowedRecords[recordFound].dateBorrowed, today, "STUDENT", allowedDays);
+
+                    printf("Date Returned: %s\n", today);
+                    printf("No. of days held: %d\n", dateToDays(today) - dateToDays(borrowedRecords[recordFound].dateBorrowed));
+                    printf("Penalty: %.2f\n", penalty);
+
+                    if (penalty > 0)
+                    {
+                        float amountReceived;
+                        printf("Amount received: ");
+                        scanf("%f", &amountReceived);
+                        while (getchar() != '\n')
+                            ;
+                        printf("Change: %.2f\n", amountReceived - penalty);
+                    }
+
+                    strcpy(borrowedRecords[recordFound].dateReturned, today);
+                    borrowedRecords[recordFound].penalty = penalty;
+                    borrowedRecords[recordFound].isReturned = true;
+                    printf("Book returned successfully. See you again!\n");
+
+                    char goBack;
+                    printf("Go back to main menu? [Y/N]: ");
+                    scanf(" %c", &goBack);
+                    while (getchar() != '\n')
+                        ;
+                    if (toupper(goBack) == 'Y')
+                        returnStatus = false;
+
                     break;
                 }
 
                 case 'B':
                 {
-                    printf("User type: Employee\n");
-                    printf("Employee id: ");
+                    printf("User type: Faculty\n");
+                    printf("Employee ID: ");
                     scanf(" %s", searchIdReturn);
                     while (getchar() != '\n')
                         ;
@@ -290,13 +471,71 @@ int main()
 
                     if (found == -1)
                     {
-                        printf("employee not found. please register first.\n");
+                        printf("Employee not found. Please register first.\n");
                         break;
                     }
 
                     printf("\tName: %s\n", faculty[found].name);
                     printf("\tDepartment: %s\n", faculty[found].department);
                     printf("\tPosition: %s\n", faculty[found].position);
+
+                    char returnBookId[20];
+                    printf("Input Book ID: ");
+                    scanf(" %s", returnBookId);
+                    while (getchar() != '\n')
+                        ;
+
+                    int recordFound = -1;
+                    for (int i = 0; i < recordCount; i++)
+                    {
+                        if (strcmp(borrowedRecords[i].userId, searchIdReturn) == 0 &&
+                            strcmp(borrowedRecords[i].bookId, returnBookId) == 0 &&
+                            !borrowedRecords[i].isReturned)
+                        {
+                            recordFound = i;
+                            break;
+                        }
+                    }
+
+                    if (recordFound == -1)
+                    {
+                        printf("No active borrow record found.\n");
+                        break;
+                    }
+
+                    printf("\tDate Borrowed: %s\n", borrowedRecords[recordFound].dateBorrowed);
+
+                    char today[20];
+                    getCurrentDate(today);
+                    int allowedDays = 5;
+                    float penalty = calculatePenalty(borrowedRecords[recordFound].dateBorrowed, today, "FACULTY", allowedDays);
+
+                    printf("Date Returned: %s\n", today);
+                    printf("No. of days held: %d\n", dateToDays(today) - dateToDays(borrowedRecords[recordFound].dateBorrowed));
+                    printf("Penalty: %.2f\n", penalty);
+
+                    if (penalty > 0)
+                    {
+                        float amountReceived;
+                        printf("Amount received: ");
+                        scanf("%f", &amountReceived);
+                        while (getchar() != '\n')
+                            ;
+                        printf("Change: %.2f\n", amountReceived - penalty);
+                    }
+
+                    strcpy(borrowedRecords[recordFound].dateReturned, today);
+                    borrowedRecords[recordFound].penalty = penalty;
+                    borrowedRecords[recordFound].isReturned = true;
+                    printf("Book returned successfully. See you again!\n");
+
+                    char goBack;
+                    printf("Go back to main menu? [Y/N]: ");
+                    scanf(" %c", &goBack);
+                    while (getchar() != '\n')
+                        ;
+                    if (toupper(goBack) == 'Y')
+                        returnStatus = false;
 
                     break;
                 }
@@ -306,7 +545,7 @@ int main()
                     break;
 
                 default:
-                    printf("invalid, plz try again.\n");
+                    printf("Invalid, please try again.\n");
                 }
             }
 
@@ -317,9 +556,9 @@ int main()
         {
             printf("USERS PROFILE:\n");
             printf("Input user type:\n");
-            printf("[A] tudent\n");
-            printf("[B] faculty\n");
-            printf("[C] back\n");
+            printf("[A] Student\n");
+            printf("[B] Faculty\n");
+            printf("[C] Back\n");
             printf("Select your answer: ");
             scanf(" %c", &userProfile);
             while (getchar() != '\n')
@@ -334,27 +573,29 @@ int main()
                 userProfileStatus = true;
                 while (userProfileStatus)
                 {
-                    printf("Student id: ");
+                    printf("Student ID: ");
                     scanf(" %s", students[studentCount].id);
                     while (getchar() != '\n')
                         ;
 
                     printf("Name: ");
                     scanf("%[^\n]", students[studentCount].name);
+                    toTitleCase(students[studentCount].name);
                     while (getchar() != '\n')
                         ;
 
                     printf("Course: ");
-                    scanf(" %s", students[studentCount].course);
+                    scanf("%[^\n]", students[studentCount].course);
+                    toUpperCase(students[studentCount].course);
                     while (getchar() != '\n')
                         ;
 
                     printf("Year Level: ");
-                    scanf(" %i", &students[studentCount].yearLevel);
+                    scanf(" %d", &students[studentCount].yearLevel);
                     while (getchar() != '\n')
                         ;
 
-                    printf("Do you want to save? y/n: ");
+                    printf("Do you want to save? [Y/N]: ");
                     scanf(" %c", &userProfileTryAgain);
                     while (getchar() != '\n')
                         ;
@@ -374,9 +615,7 @@ int main()
                         }
 
                         if (duplicate != -1)
-                        {
-                            printf("student already exists!\n");
-                        }
+                            printf("Student already exists!\n");
                         else
                         {
                             studentCount++;
@@ -385,31 +624,34 @@ int main()
                         }
                     }
                 }
-
                 break;
             }
 
             case 'B':
+            {
                 userProfileStatus = true;
                 while (userProfileStatus)
                 {
-                    printf("Employee id: ");
+                    printf("Employee ID: ");
                     scanf(" %s", faculty[facultyCount].id);
                     while (getchar() != '\n')
                         ;
 
                     printf("Name: ");
-                    scanf(" %[^\n]", faculty[facultyCount].name);
+                    scanf("%[^\n]", faculty[facultyCount].name);
+                    toTitleCase(faculty[facultyCount].name);
                     while (getchar() != '\n')
                         ;
 
                     printf("Department: ");
-                    scanf(" %s", faculty[facultyCount].department);
+                    scanf("%[^\n]", faculty[facultyCount].department);
+                    toTitleCase(faculty[facultyCount].department);
                     while (getchar() != '\n')
                         ;
 
                     printf("Position: ");
-                    scanf(" %s", faculty[facultyCount].position);
+                    scanf("%[^\n]", faculty[facultyCount].position);
+                    toTitleCase(faculty[facultyCount].position);
                     while (getchar() != '\n')
                         ;
 
@@ -417,8 +659,8 @@ int main()
                     scanf(" %c", &userProfileTryAgain);
                     while (getchar() != '\n')
                         ;
-
                     printf("\n");
+
                     char upperUserProfileTryAgain = toupper(userProfileTryAgain);
 
                     if (upperUserProfileTryAgain == 'Y')
@@ -434,9 +676,7 @@ int main()
                         }
 
                         if (duplicate != -1)
-                        {
-                            printf("employee already exists!\n");
-                        }
+                            printf("Employee already exists!\n");
                         else
                         {
                             facultyCount++;
@@ -445,14 +685,14 @@ int main()
                         }
                     }
                 }
-
                 break;
+            }
 
             case 'C':
                 break;
 
             default:
-                printf("invalid, please try again...\n");
+                printf("Invalid, please try again.\n");
             }
 
             break;
@@ -460,21 +700,83 @@ int main()
 
         case 'D':
         {
-            printf("REPORTS MENU");
-            printf("[A] Borrowed Books");
-            printf("[B] Returned Book");
-            printf("[C] Students Profile Report");
-            printf("[D] Faculty Profile Report");
-            printf("[E] Back");
-            printf("plz select: ");
+            printf("REPORTS MENU\n");
+            printf("[A] Borrowed Books\n");
+            printf("[B] Returned Books\n");
+            printf("[C] Student Profiles\n");
+            printf("[D] Faculty Profiles\n");
+            printf("[E] Back\n");
+            printf("Select: ");
             scanf(" %c", &reportsMenu);
             printf("\n");
             char upperReportsMenu = toupper(reportsMenu);
 
+            switch (upperReportsMenu)
+            {
+            case 'A':
+                printf("Borrowed Books\n");
+                for (int i = 0; i < recordCount; i++)
+                {
+                    if (!borrowedRecords[i].isReturned)
+                    {
+                        printf("User Type: %s | User: %s | Book: %s | Date Borrowed: %s\n",
+                               borrowedRecords[i].userType,
+                               borrowedRecords[i].userId,
+                               borrowedRecords[i].bookId,
+                               borrowedRecords[i].dateBorrowed);
+                    }
+                }
+                break;
+
+            case 'B':
+                printf("Returned Books\n");
+                for (int i = 0; i < recordCount; i++)
+                {
+                    if (borrowedRecords[i].isReturned)
+                    {
+                        printf("User Type: %s | User: %s | Book: %s | Date Returned: %s | Penalty: %.2f\n",
+                               borrowedRecords[i].userType,
+                               borrowedRecords[i].userId,
+                               borrowedRecords[i].bookId,
+                               borrowedRecords[i].dateReturned,
+                               borrowedRecords[i].penalty);
+                    }
+                }
+                break;
+
+            case 'C':
+                printf("Student Profiles\n");
+                for (int i = 0; i < studentCount; i++)
+                {
+                    printf("ID: %s | Name: %s | Course: %s | Year: %d\n",
+                           students[i].id,
+                           students[i].name,
+                           students[i].course,
+                           students[i].yearLevel);
+                }
+                break;
+
+            case 'D':
+                printf("Faculty Profiles\n");
+                for (int i = 0; i < facultyCount; i++)
+                {
+                    printf("ID: %s | Name: %s | Dept: %s | Position: %s\n",
+                           faculty[i].id,
+                           faculty[i].name,
+                           faculty[i].department,
+                           faculty[i].position);
+                }
+                break;
+
+            case 'E':
+                break;
+
+            default:
+                printf("Invalid, try again.\n");
+            }
+
             break;
         }
-
-            // csv printout
 
         case 'E':
         {
@@ -484,9 +786,9 @@ int main()
         }
 
         default:
-        {
-            printf("invalid, please try again.\n");
-        }
+            printf("Invalid, please try again.\n");
         }
     }
+
+    return 0;
 }

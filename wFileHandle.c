@@ -43,11 +43,11 @@ typedef struct
 
 Book books[6] = {
     {"INPR111", "Intermediate Programming", "Mrs. Chua", "2020", "Test Publish", "COMPUTER"},
-    {"C0002", "Digital Logic", "Mr. Santos", "2020", "Test Publisher", "COMPUTER"},
-    {"M0001", "Differential Calculus", "Ms. Reyes", "2018", "Test Publisher", "MATHEMATICS"},
-    {"M0002", "Discrete Mathematics", "Mr. Cruz", "2021", "Test Publisher", "MATHEMATICS"},
-    {"S0001", "General Microbiology", "Ms. Lim", "2017", "Test Publisher", "SCIENCES"},
-    {"S0002", "Biological Evolution", "Mr. Garcia", "2019", "Test Publisher", "SCIENCES"},
+    {"DILO111", "Digital Logic", "Mr. Santos", "2020", "Test Publisher", "COMPUTER"},
+    {"DCAL211", "Differential Calculus", "Ms. Reyes", "2018", "Test Publisher", "MATHEMATICS"},
+    {"DSMM211", "Discrete Mathematics", "Mr. Cruz", "2021", "Test Publisher", "MATHEMATICS"},
+    {"GNMC121", "General Microbiology", "Ms. Lim", "2017", "Test Publisher", "SCIENCES"},
+    {"BIEO221", "Biological Evolution", "Mr. Garcia", "2019", "Test Publisher", "SCIENCES"},
 };
 
 void getCurrentDate(char result[])
@@ -110,6 +110,7 @@ float calculatePenalty(char dateBorrowed[], char dateReturned[], char userType[]
 
 void saveStudents(Student students[], int count)
 {
+    printf("Saving to: %s\n", _fullpath(NULL, "students.csv", 260));
     FILE *fp = fopen("students.csv", "w");
     if (fp == NULL)
     {
@@ -346,6 +347,7 @@ int main()
             printf("Input user type:\n");
             printf("[A] student\n");
             printf("[B] faculty\n");
+            printf("[C] back\n");
             printf("Select your answer: ");
             scanf(" %c", &borrowUserType);
             printf("\n");
@@ -447,6 +449,12 @@ int main()
 
                 break;
             }
+
+            case 'C':
+            {
+                break;
+            }
+
             default:
                 printf("invalid, try again.\n");
             }
@@ -496,6 +504,7 @@ int main()
 
         case 'B':
         {
+            returnStatus = true;
             while (returnStatus)
             {
                 printf("\nRETURN MENU \n");
@@ -593,7 +602,7 @@ int main()
                     borrowedRecords[recordFound].isReturned = true;
                     saveRecords(borrowedRecords, recordCount);
 
-                    printf("Book returned successfully. See you again!");
+                    printf("Book returned successfully. See you again!\n");
 
                     char goBbackk = ' ';
                     printf("Go back to main menu? [Y/N]: ");
@@ -666,7 +675,7 @@ int main()
                     char today[20];
                     getCurrentDate(today);
                     int allowedDays = 5;
-                    float penalty = calculatePenalty(borrowedRecords[recordFound].dateBorrowed, today, "STUDENT", allowedDays);
+                    float penalty = calculatePenalty(borrowedRecords[recordFound].dateBorrowed, today, "FACULTY", allowedDays);
 
                     printf("Date Returned: %s\n", today);
                     printf("No. of days: %d\n", dateToDays(today) - dateToDays(borrowedRecords[recordFound].dateBorrowed));
@@ -718,7 +727,7 @@ int main()
         {
             printf("USERS PROFILE:\n");
             printf("Input user type:\n");
-            printf("[A] tudent\n");
+            printf("[A] student\n");
             printf("[B] faculty\n");
             printf("[C] back\n");
             printf("Select your answer: ");
@@ -788,6 +797,11 @@ int main()
                             printf("User Added Successfully.\n");
                         }
                     }
+                    else
+                    {
+                        printf("User adding aborted.");
+                        break;
+                    }
                 }
 
                 break;
@@ -852,6 +866,11 @@ int main()
                             printf("User Added Successfully.\n");
                         }
                     }
+                    else
+                    {
+                        printf("user adding aborted");
+                        break;
+                    }
                 }
 
                 break;
@@ -900,13 +919,13 @@ int main()
                 printf("Returned Books\n");
                 for (int i = 0; i < recordCount; i++)
                 {
-                    if (!borrowedRecords[i].isReturned)
+                    if (borrowedRecords[i].isReturned)
                     {
                         printf("User Type: %s | User: %s | Book: %s | Date: %s\n",
                                borrowedRecords[i].userType,
                                borrowedRecords[i].userId,
                                borrowedRecords[i].bookId,
-                               borrowedRecords[i].dateBorrowed);
+                               borrowedRecords[i].dateReturned);
                     }
                 }
                 break;
