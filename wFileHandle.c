@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
 #include <string.h>
@@ -245,7 +246,7 @@ void showBooksDetails(char category[], Book books[], int bookCount, bool *borrow
 {
     char choice;
     int index = 0;
-    int bookIndices[2];
+    int bookIndices[20];
     char confirm;
     char today[20];
     getCurrentDate(today);
@@ -259,16 +260,18 @@ void showBooksDetails(char category[], Book books[], int bookCount, bool *borrow
             index++;
         }
     }
-    printf("[C] - Back\n");
+
+    char backChoice = 'A' + index;
+    printf("[%c] - Back\n", backChoice);
     printf("Select your answer: ");
     scanf(" %c", &choice);
     char upperChoice = toupper(choice);
 
-    if (upperChoice == 'C')
+    if (upperChoice == backChoice)
         return;
 
     int selectedBook = -1;
-    if (upperChoice >= 'A' && upperChoice <= 'A' + index)
+    if (upperChoice >= 'A' && upperChoice < backChoice)
     {
         selectedBook = bookIndices[upperChoice - 'A'];
     }
@@ -291,11 +294,29 @@ void showBooksDetails(char category[], Book books[], int bookCount, bool *borrow
 
     if (upperConfirm == 'Y')
     {
+        // printf("DEBUG: recordCount = %d\n", *recordCount);
+        int bookTaken = 0;
+        for (int i = 0; i < *recordCount; i++)
+        {
+            // printf("DEBUG: checking record %d bookId=%s isReturned=%d\n", i, records[i].bookId, records[i].isReturned);
+            if (strcmp(records[i].bookId, books[selectedBook].id) == 0 && !records[i].isReturned)
+            {
+                bookTaken = 1;
+                break;
+            }
+        }
+
+        if (bookTaken)
+        {
+            printf("Sorry, that book is currently borrowed by someone else.\n");
+            return;
+        }
+
         // add to records
         strcpy(records[*recordCount].userId, userId);
         strcpy(records[*recordCount].userType, userType);
         strcpy(records[*recordCount].bookId, books[selectedBook].id);
-        strcpy(records[*recordCount].dateBorrowed, today); // dynamic date // change date for simulation par
+        strcpy(records[*recordCount].dateBorrowed, today); // dynamic date // change date for simulation par "YYYY-MM-DD"
         strcpy(records[*recordCount].dateReturned, "N/A");
         records[*recordCount].penalty = 0;
         records[*recordCount].isReturned = false;
@@ -334,7 +355,7 @@ int main()
         printf("[C] USERS PROFILE\n");
         printf("[D] REPORTS\n");
         printf("[E] EXIT\n");
-        printf("plz select: ");
+        printf("Select your answer: ");
         scanf(" %c", &mainMenu);
         printf("\n");
         char upperMainMenu = toupper(mainMenu);
@@ -396,7 +417,7 @@ int main()
                     if (strcmp(borrowedRecords[i].userId, currentUserId) == 0 &&
                         !borrowedRecords[i].isReturned)
                     {
-                        printf("You still have an unreturned book! please return it furst.\n");
+                        printf("You still have an unreturned book! please return it first.\n");
                         userFound = false;
                         break;
                     }
@@ -589,11 +610,23 @@ int main()
 
                     if (penalty > 0)
                     {
-                        float amountReceived;
-                        printf("Amound received: ");
-                        scanf("%f", &amountReceived);
-                        while (getchar() != '\n')
-                            ;
+                        float amountReceived = 0;
+                        do
+                        {
+                            printf("Amount received: ");
+                            if (scanf("%f", &amountReceived) != 1)
+                            {
+                                amountReceived = 0;
+                            }
+                            while (getchar() != '\n')
+                                ;
+
+                            if (amountReceived < penalty)
+                            {
+                                printf("Amount received must be at least %.2f. Please enter again.\n", penalty);
+                            }
+                        } while (amountReceived < penalty);
+
                         printf("Change: %.2f\n", amountReceived - penalty);
                     }
 
@@ -683,11 +716,23 @@ int main()
 
                     if (penalty > 0)
                     {
-                        float amountReceived;
-                        printf("Amound received: ");
-                        scanf("%f", &amountReceived);
-                        while (getchar() != '\n')
-                            ;
+                        float amountReceived = 0;
+                        do
+                        {
+                            printf("Amount received: ");
+                            if (scanf("%f", &amountReceived) != 1)
+                            {
+                                amountReceived = 0;
+                            }
+                            while (getchar() != '\n')
+                                ;
+
+                            if (amountReceived < penalty)
+                            {
+                                printf("Amount received must be at least %.2f. Please enter again.\n", penalty);
+                            }
+                        } while (amountReceived < penalty);
+
                         printf("Change: %.2f\n", amountReceived - penalty);
                     }
 
@@ -716,7 +761,7 @@ int main()
                     break;
 
                 default:
-                    printf("invalid, plz try again.\n");
+                    printf("Invalid, please try again.\n");
                 }
             }
 
@@ -893,7 +938,7 @@ int main()
             printf("[C] Students Profiles\n");
             printf("[D] Faculty Profiles\n");
             printf("[E] Back\n");
-            printf("plz select: ");
+            printf("Please select: ");
             scanf(" %c", &reportsMenu);
             printf("\n");
             char upperReportsMenu = toupper(reportsMenu);
@@ -958,7 +1003,7 @@ int main()
                 break;
 
             default:
-                printf("invalid, try again.\n");
+                printf("Invalid, please try again.\n");
             }
 
             break;
